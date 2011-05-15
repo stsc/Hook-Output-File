@@ -1,0 +1,25 @@
+Revision history for Perl extension Hook::Output::File.
+
+0.06 Tue Mar  3 12:51:34 CET 2009
+
+ - Require perl 5.8.0 or newer. [rt #43501 - Andreas J. König]
+
+0.05 Mon Feb 16 14:04:44 CET 2009
+
+ - Be more concise with both the documentation and code. 
+
+0.04 Sat Feb  9 17:25:37 CET 2008
+
+ - Added test-file redirect.t.
+
+ - Added new build dependencies (File::Temp & IO::Capture).
+
+ - Reformatted documentation.
+
+0.02 Wed Jan 31 23:45:51 CET 2007
+
+ - Replaced STDIN with STDERR in description.
+
+0.01 Thu Wed Jan 31 11:03:00 CET 2007
+
+ - Initial version.

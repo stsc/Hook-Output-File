@@ -1,5 +1,20 @@
 Revision history for Perl extension Hook::Output::File.
 
+0.06_01  2011-05-16  <schubiger@cpan.org>
+
+ - Fix redirecting output (e.g., stdout) when no filehandle was
+   provided to print by substituting select calls with IO::Handle.
+
+ - Interpolate symbolic references in tie/untie invocations.
+
+ - Test that redirecting without an explicit filehandle works.
+
+ - Skip documentation tests for non-release testing.
+
+ - Remove the testing diagnostic.
+
+ - Update broken license link.
+
 0.06 Tue Mar  3 12:51:34 CET 2009
 
  - Require perl 5.8.0 or newer. [rt #43501 - Andreas J. König]

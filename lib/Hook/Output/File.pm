@@ -3,13 +3,15 @@ package Hook::Output::File;
 use strict;
 use warnings;
 use base qw(Tie::Handle);
+use constant true => 1;
 
 use Carp qw(croak);
 use File::Spec ();
+use IO::Handle ();
 
 our ($VERSION, @ISA);
 
-$VERSION = '0.06';
+$VERSION = '0.06_01';
 @ISA = qw(Tie::StdHandle);
 
 sub redirect
@@ -28,14 +30,14 @@ EOT
     no strict 'refs';
     my $caller = caller;
 
-    tie *{$caller.'::STDOUT'}, 'Hook::Output::File';
-    tie *{$caller.'::STDERR'}, 'Hook::Output::File';
+    tie *{"${caller}::STDOUT"}, 'Hook::Output::File';
+    tie *{"${caller}::STDERR"}, 'Hook::Output::File';
 
     open(STDOUT, '>>', $opts{stdout}) or croak "Cannot redirect STDOUT: $!";
     open(STDERR, '>>', $opts{stderr}) or croak "Cannot redirect STDERR: $!";
 
-    select STDOUT; $| = 1;
-    select STDERR; $| = 1;
+    STDOUT->autoflush(true);
+    STDERR->autoflush(true);
 
     return bless {}, ref($class) || $class;
 }
@@ -46,8 +48,8 @@ DESTROY
     my $caller = caller;
 
     no warnings 'untie';
-    untie *{$caller.'::STDOUT'};
-    untie *{$caller.'::STDERR'};
+    untie *{"${caller}::STDOUT"};
+    untie *{"${caller}::STDERR"};
 }
 
 1;
@@ -66,11 +68,11 @@ Hook::Output::File - Redirect STDOUT/STDERR to a file
          stdout => '/tmp/1.out',
          stderr => '/tmp/2.out',
      );
-     
+
      saved();
-     
-     undef $hook; # restore previous state of streams 
-     
+
+     undef $hook; # restore previous state of streams
+
      not_saved();
  }
 
@@ -93,13 +95,13 @@ C<Hook::Output::File> redirects C<STDOUT/STDERR> to a file.
 =head2 redirect
 
 Installs a file-redirection hook for regular output streams (i.e.,
-C<STDOUT & STDERR>) with lexical scope. 
+C<STDOUT & STDERR>) with lexical scope.
 
 A word of caution: do not intermix the file paths for C<STDOUT/STDERR>
 output or you will eventually receive unexpected results. The paths
 will be checked that they are absolute and if not, an usage help will
 be printed (because otherwise, the C<open()> call might silently fail
-to satisfy expectations). 
+to satisfy expectations).
 
 The hook may be uninstalled either explicitly or implicitly; doing it
 explicit requires to unset the hook "variable" (more concisely, it is
@@ -112,14 +114,14 @@ defined in.
          stdout => '/tmp/1.out',
          stderr => '/tmp/2.out',
      );
-     
+
      some_sub();
 
      undef $hook; # explicitly remove hook
 
      another_sub();
  }
- ... # hook implicitly removed 
+ ... # hook implicitly removed
 
 =head1 BUGS & CAVEATS
 
@@ -138,6 +140,6 @@ Steven Schubiger <schubiger@cpan.org>
 This program is free software; you may redistribute it and/or
 modify it under the same terms as Perl itself.
 
-See L<http://www.perl.com/perl/misc/Artistic.html>
+See L<http://dev.perl.org/licenses/>
 
 =cut

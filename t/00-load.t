@@ -5,8 +5,7 @@ use warnings;
 
 use Test::More tests => 1;
 
-BEGIN {
+BEGIN
+{
     use_ok('Hook::Output::File');
 }
-
-diag("Testing Hook::Output::File $Hook::Output::File::VERSION, Perl $], $^X");

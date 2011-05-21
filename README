@@ -32,19 +32,26 @@ DESCRIPTION
 
 METHODS
   redirect
+     my $hook = Hook::Output::File->redirect(
+         stdout => $stdout_file,
+         # and/or
+         stderr => $stderr_file,
+     );
+
     Installs a file-redirection hook for regular output streams (i.e.,
-    `STDOUT & STDERR') with lexical scope.
+    `STDOUT/STDERR') with lexical scope.
 
     A word of caution: do not intermix the file paths for `STDOUT/STDERR'
-    output or you will eventually receive unexpected results. The paths will
-    be checked that they are absolute and if not, an usage help will be
-    printed (because otherwise, the `open()' call might silently fail to
-    satisfy expectations).
+    output or you will eventually receive unexpected results. The paths may
+    be relative or absolute; if no valid path is provided, an usage help
+    will be printed (because otherwise, the `open()' call might silently
+    fail to satisfy expectations).
 
     The hook may be uninstalled either explicitly or implicitly; doing it
-    explicit requires to unset the hook "variable" (more concisely, it is a
-    blessed object), whereas the implicit end of the hook will automatically
-    be triggered when leaving the scope the hook was defined in.
+    the explicit way requires to unset the hook variable (more concisely, it
+    is a blessed object), whereas the implicit end of the hook will
+    automatically be triggered when leaving the scope the hook was defined
+    in.
 
      {
          my $hook = Hook::Output::File->redirect(

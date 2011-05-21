@@ -1,5 +1,23 @@
 Revision history for Perl extension Hook::Output::File.
 
+0.06_02  2011-05-21  <schubiger@cpan.org>
+
+ - Allow for either single STDOUT or STDERR to be redirected.
+
+ - Retrieve for relative paths provided the absolute ones.
+
+ - Validation of arguments is now handled by Params::Validate.
+
+ - Use the boolean pragma for true/false values.
+
+ - Return early in DESTROY for Tie::StdHandle.
+
+ - Enhance tests and adjust documentation to reflect changes.
+
+ - Do no longer recommend Test::Pod and Test::Pod::Coverage.
+
+ - Remove File::Spec as prerequisite.
+
 0.06_01  2011-05-16  <schubiger@cpan.org>
 
  - Fix redirecting output (e.g., stdout) when no filehandle was

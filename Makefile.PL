@@ -9,12 +9,16 @@ WriteMakefile
           'EXE_FILES' => [],
           'VERSION_FROM' => 'lib/Hook/Output/File.pm',
           'PREREQ_PM' => {
-                           'Test::More' => 0,
-                           'File::Temp' => 0,
-                           'File::Spec' => 0,
+                           'Scalar::Util' => 0,
+                           'IO::Handle' => 0,
                            'Tie::Handle' => 0,
+                           'Carp' => 0,
+                           'boolean' => 0,
+                           'Test::More' => 0,
+                           'Params::Validate' => 0,
+                           'File::Temp' => 0,
                            'IO::Capture' => 0,
-                           'Carp' => 0
+                           'Cwd' => 0
                          }
         )
 ;

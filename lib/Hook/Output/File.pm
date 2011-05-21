@@ -3,53 +3,99 @@ package Hook::Output::File;
 use strict;
 use warnings;
 use base qw(Tie::Handle);
-use constant true => 1;
+use boolean qw(true);
 
 use Carp qw(croak);
-use File::Spec ();
+use Cwd qw(abs_path);
 use IO::Handle ();
+use Params::Validate ':all';
+use Scalar::Util qw(reftype);
 
 our ($VERSION, @ISA);
 
-$VERSION = '0.06_01';
+$VERSION = '0.06_02';
 @ISA = qw(Tie::StdHandle);
+
+validation_options(
+    on_fail => sub
+{
+    my ($error) = @_;
+    chomp $error;
+    croak $error;
+},
+    stack_skip => 2,
+);
 
 sub redirect
 {
-    my ($class, %opts) = @_;
+    my $class = shift;
+    _validate(@_);
+    my %opts = @_;
 
-    croak <<'EOT'
-Hook::Output::File->redirect(stdout => 'absolute_path1',
-                             stderr => 'absolute_path2');
-EOT
-      unless defined $opts{stdout}
-          && defined $opts{stderr}
-          && File::Spec->file_name_is_absolute($opts{stdout})
-          && File::Spec->file_name_is_absolute($opts{stderr});
+    my @keys   = keys   %opts;
+    my @values = values %opts;
+    delete @opts{@keys};
+    @opts{map uc, @keys} = @values;
+
+    my @streams = grep { exists $opts{$_} && defined $opts{$_} } map uc, qw(stdout stderr);
+
+    my %paths;
+    foreach my $stream (@streams) {
+        $paths{$stream} = abs_path($opts{$stream});
+    }
 
     no strict 'refs';
     my $caller = caller;
 
-    tie *{"${caller}::STDOUT"}, 'Hook::Output::File';
-    tie *{"${caller}::STDERR"}, 'Hook::Output::File';
+    foreach my $stream (@streams) {
+        tie *{"${caller}::$stream"}, __PACKAGE__;
+    }
+    foreach my $stream (@streams) {
+        open($stream, '>>', $paths{$stream}) or croak "Cannot redirect $stream: $!";
+    }
+    foreach my $fh (map \*$_, @streams) {
+        $fh->autoflush(true);
+    }
 
-    open(STDOUT, '>>', $opts{stdout}) or croak "Cannot redirect STDOUT: $!";
-    open(STDERR, '>>', $opts{stderr}) or croak "Cannot redirect STDERR: $!";
+    return bless { streams => [ @streams ] }, ref($class) || $class;
+}
 
-    STDOUT->autoflush(true);
-    STDERR->autoflush(true);
+sub _validate
+{
+    validate(@_, {
+        stdout => {
+            type => UNDEF | SCALAR,
+            optional => true,
+        },
+        stderr => {
+            type => UNDEF | SCALAR,
+            optional => true,
+        },
+    });
 
-    return bless {}, ref($class) || $class;
+    my %opts = @_;
+
+    croak <<'EOT'
+Hook::Output::File->redirect(stdout => 'file1',
+                             stderr => 'file2');
+EOT
+      if not defined $opts{stdout}
+          || defined $opts{stderr};
 }
 
 DESTROY
 {
+    my $self = shift;
+
+    return if reftype $self eq 'GLOB' && *$self =~ /^\*Tie::StdHandle/;
+
     no strict 'refs';
     my $caller = caller;
 
     no warnings 'untie';
-    untie *{"${caller}::STDOUT"};
-    untie *{"${caller}::STDERR"};
+    foreach my $stream (@{$self->{streams}}) {
+        untie *{"${caller}::$stream"};
+    }
 }
 
 1;
@@ -94,18 +140,24 @@ C<Hook::Output::File> redirects C<STDOUT/STDERR> to a file.
 
 =head2 redirect
 
+ my $hook = Hook::Output::File->redirect(
+     stdout => $stdout_file,
+     # and/or
+     stderr => $stderr_file,
+ );
+
 Installs a file-redirection hook for regular output streams (i.e.,
-C<STDOUT & STDERR>) with lexical scope.
+C<STDOUT/STDERR>) with lexical scope.
 
 A word of caution: do not intermix the file paths for C<STDOUT/STDERR>
 output or you will eventually receive unexpected results. The paths
-will be checked that they are absolute and if not, an usage help will
-be printed (because otherwise, the C<open()> call might silently fail
-to satisfy expectations).
+may be relative or absolute; if no valid path is provided, an usage
+help will be printed (because otherwise, the C<open()> call might
+silently fail to satisfy expectations).
 
 The hook may be uninstalled either explicitly or implicitly; doing it
-explicit requires to unset the hook "variable" (more concisely, it is
-a blessed object), whereas the implicit end of the hook will
+the explicit way requires to unset the hook variable (more concisely,
+it is a blessed object), whereas the implicit end of the hook will
 automatically be triggered when leaving the scope the hook was
 defined in.
 

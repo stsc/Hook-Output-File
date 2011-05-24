@@ -1,6 +1,6 @@
 ---
 name: Hook-Output-File
-version: 0.06_02
+version: 0.07
 author:
   - 'Steven Schubiger <schubiger@cpan.org>'
 abstract: Redirect STDOUT/STDERR to a file
@@ -25,7 +25,7 @@ configure_requires:
 provides:
   Hook::Output::File:
     file: lib/Hook/Output/File.pm
-    version: 0.06_02
+    version: 0.07
 generated_by: Module::Build version 0.340201
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html

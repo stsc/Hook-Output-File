@@ -13,7 +13,7 @@ use Scalar::Util qw(reftype);
 
 our ($VERSION, @ISA);
 
-$VERSION = '0.06_02';
+$VERSION = '0.07';
 @ISA = qw(Tie::StdHandle);
 
 validation_options(

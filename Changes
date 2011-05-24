@@ -1,5 +1,9 @@
 Revision history for Perl extension Hook::Output::File.
 
+0.07  2011-05-24  <schubiger@cpan.org>
+
+ - Merged development version to stable.
+
 0.06_02  2011-05-21  <schubiger@cpan.org>
 
  - Allow for either single STDOUT or STDERR to be redirected.

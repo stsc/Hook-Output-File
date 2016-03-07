@@ -15,11 +15,9 @@ my $build = Module::Build->new
                  'boolean' => 0,
                  'perl' => 5.008000,
                  'Carp' => 0,
-                 'Cwd' => 0,
-                 'IO::Handle' => 0,
+                 'File::Spec' => 0,
                  'Params::Validate' => 0,
                  'Scalar::Util' => 0,
-                 'Tie::Handle' => 0,
                },
    build_requires => {
                        'File::Temp' => 0,

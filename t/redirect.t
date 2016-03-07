@@ -120,8 +120,8 @@ sub test_capture
         stderr => $stderr_tmpfile,
     );
 
-    isnt(fileno STDOUT, $descriptors[stdout], 'stdout descriptor while');
-    isnt(fileno STDERR, $descriptors[stderr], 'stderr descriptor while');
+    is(fileno STDOUT, $descriptors[stdout], 'stdout descriptor while');
+    is(fileno STDERR, $descriptors[stderr], 'stderr descriptor while');
 
     undef $hook;
 

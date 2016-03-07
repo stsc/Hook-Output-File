@@ -2,19 +2,14 @@ package Hook::Output::File;
 
 use strict;
 use warnings;
-use base qw(Tie::Handle);
-use boolean qw(true);
+use boolean qw(true false);
 
 use Carp qw(croak);
-use Cwd qw(abs_path);
-use IO::Handle ();
+use File::Spec ();
 use Params::Validate ':all';
-use Scalar::Util qw(reftype);
+use Scalar::Util qw(blessed);
 
-our ($VERSION, @ISA);
-
-$VERSION = '0.07';
-@ISA = qw(Tie::StdHandle);
+our $VERSION = '0.07_01';
 
 validation_options(
     on_fail => sub
@@ -29,6 +24,8 @@ validation_options(
 sub redirect
 {
     my $class = shift;
+    croak 'Invoke with ' . __PACKAGE__ . "->redirect(...)\n"
+      if defined blessed $class || $class ne __PACKAGE__;
     _validate(@_);
     my %opts = @_;
 
@@ -37,27 +34,39 @@ sub redirect
     delete @opts{@keys};
     @opts{map uc, @keys} = @values;
 
-    my @streams = grep { exists $opts{$_} && defined $opts{$_} } map uc, qw(stdout stderr);
+    my %streams = map {
+        $_ => (exists $opts{$_} && defined $opts{$_}) ? true : false
+    } qw(STDOUT STDERR);
 
     my %paths;
-    foreach my $stream (@streams) {
-        $paths{$stream} = abs_path($opts{$stream});
+    foreach my $stream (grep $streams{$_}, qw(STDOUT STDERR)) {
+        $paths{$stream} = File::Spec->rel2abs($opts{$stream});
     }
 
-    no strict 'refs';
-    my $caller = caller;
+    my ($old_out, $old_err);
 
-    foreach my $stream (@streams) {
-        tie *{"${caller}::$stream"}, __PACKAGE__;
+    if ($streams{'STDOUT'}) {
+        open($old_out, '>&', STDOUT)         or croak "Cannot duplicate STDOUT: $!";
+        open(STDOUT, '>>', $paths{'STDOUT'}) or croak "Cannot redirect STDOUT: $!";
+
+        my $ofh = select STDOUT;
+        $| = true;
+        select $ofh;
     }
-    foreach my $stream (@streams) {
-        open($stream, '>>', $paths{$stream}) or croak "Cannot redirect $stream: $!";
-    }
-    foreach my $fh (map \*$_, @streams) {
-        $fh->autoflush(true);
+    if ($streams{'STDERR'}) {
+        open($old_err, '>&', STDERR)         or croak "Cannot duplicate STDERR: $!";
+        open(STDERR, '>>', $paths{'STDERR'}) or croak "Cannot redirect STDERR: $!";
+
+        my $ofh = select STDERR;
+        $| = true;
+        select $ofh;
     }
 
-    return bless { streams => [ @streams ] }, ref($class) || $class;
+    my %handles;
+    $handles{'STDOUT'} = $old_out if $streams{'STDOUT'};
+    $handles{'STDERR'} = $old_err if $streams{'STDERR'};
+
+    return bless { handles => { %handles } }, $class;
 }
 
 sub _validate
@@ -87,14 +96,19 @@ DESTROY
 {
     my $self = shift;
 
-    return if reftype $self eq 'GLOB' && *$self =~ /^\*Tie::StdHandle/;
+    return unless blessed $self eq __PACKAGE__;
 
-    no strict 'refs';
-    my $caller = caller;
+    my %handles = %{$self->{handles}};
 
-    no warnings 'untie';
-    foreach my $stream (@{$self->{streams}}) {
-        untie *{"${caller}::$stream"};
+    if (exists $handles{'STDOUT'}) {
+        close(STDOUT);
+        open(STDOUT, '>&', $handles{'STDOUT'}) or croak "Cannot restore STDOUT: $!";
+        close($handles{'STDOUT'});
+    }
+    if (exists $handles{'STDERR'}) {
+        close(STDERR);
+        open(STDERR, '>&', $handles{'STDERR'}) or croak "Cannot restore STDERR: $!";
+        close($handles{'STDERR'});
     }
 }
 
@@ -174,14 +188,6 @@ defined in.
      another_sub();
  }
  ... # hook implicitly removed
-
-=head1 BUGS & CAVEATS
-
-Does not work in a forked environment, such as the case with daemons.
-
-=head1 SEE ALSO
-
-L<perltie>
 
 =head1 AUTHOR
 

@@ -9,7 +9,7 @@ use File::Spec ();
 use Params::Validate ':all';
 use Scalar::Util qw(blessed);
 
-our $VERSION = '0.07_01';
+our $VERSION = '0.07_02';
 
 validation_options(
     on_fail => sub

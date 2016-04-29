@@ -1,5 +1,9 @@
 Revision history for Perl extension Hook::Output::File.
 
+0.08  2016-04-29  <schubiger@cpan.org>
+
+ - Merged development version to stable.
+
 0.07_02  2016-04-06  <schubiger@cpan.org>
 
  - Add metadata repository link.

@@ -40,10 +40,10 @@
    "provides" : {
       "Hook::Output::File" : {
          "file" : "lib/Hook/Output/File.pm",
-         "version" : "0.07_02"
+         "version" : "0.08"
       }
    },
-   "release_status" : "testing",
+   "release_status" : "stable",
    "resources" : {
       "license" : [
          "http://dev.perl.org/licenses/"
@@ -52,6 +52,6 @@
          "url" : "https://github.com/stsc/Hook-Output-File"
       }
    },
-   "version" : "0.07_02",
+   "version" : "0.08",
    "x_serialization_backend" : "JSON::PP version 2.27203"
 }
